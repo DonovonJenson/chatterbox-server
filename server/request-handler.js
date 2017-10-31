@@ -18,6 +18,7 @@ var fs = require('fs');
 var path = require('path');
 
 var dataArr = [];
+var idCounter = 0;
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -62,13 +63,12 @@ var requestHandler = function(request, response) {
 
   var qs = require('querystring');
   if (request.url === '/') {
-    request.url = '/classes/message';
+    request.url = '/classes/messages';
   }
-  if (request.url !== '/classes/messages') {
+  if (request.url !== '/classes/messages' && !request.url.includes('-createdAt')) {
     response.writeHead(404, headers);
-    response.write(JSON.stringify({results: dataArr}));
-    response.end();
-
+    //response.write();
+    response.end(JSON.stringify({results: dataArr}));
   } else if (request.method === 'POST') {
     response.writeHead(201, headers);
     var body = '';
@@ -83,17 +83,20 @@ var requestHandler = function(request, response) {
       }
       console.log(POST);
       POST.createdAt = new Date();
-      dataArr.push(POST);
+      POST.objectId = idCounter;
+      idCounter++;
+      dataArr.unshift(POST);
       console.log(dataArr);
       var endPoint = {results: dataArr};
-      response.write(JSON.stringify(endPoint));
-      response.end();
+      //response.write();
+      response.end(JSON.stringify(endPoint));
     });
 
   } else if (request.method === 'GET') {
     response.writeHead(200, headers);
-    response.write(JSON.stringify({results: dataArr}));
-    response.end();
+    //response.write();
+    console.log(JSON.stringify({results: dataArr}));
+    response.end(JSON.stringify({results: dataArr}));
 
   } else if (request.method === 'PUT') {
     response.writeHead(200, headers);
@@ -105,10 +108,10 @@ var requestHandler = function(request, response) {
     response.write(JSON.stringify({results: dataArr}));
     response.end();
 
-  } else if (request.method === ' OPTIONS') {
+  } else if (request.method === 'OPTIONS') {
     response.writeHead(200, headers);
-    response.write(JSON.stringify({results: dataArr}));
-    response.end();
+    //response.write();
+    response.end(JSON.stringify({results: dataArr}));
   } else {
   
     response.writeHead(200, headers);
