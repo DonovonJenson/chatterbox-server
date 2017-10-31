@@ -12,6 +12,13 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
+var http = require('http');
+var handleRequest = require('./request-handler.js');
+var fs = require('fs');
+var path = require('path');
+
+var dataArr = [];
+
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -29,8 +36,9 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
+
   // The outgoing status.
-  var statusCode = 200;
+  //var statusCode = 200;
 
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
@@ -43,8 +51,71 @@ var requestHandler = function(request, response) {
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  
+  
+  
 
+  // if (request.method === "POST") {
+  //   dataArr.push(request.data);
+  //   console.log(request.client.HTTPParser);
+  // }
+
+  var qs = require('querystring');
+  if (request.url === '/') {
+    request.url = '/classes/message';
+  }
+  if (request.url !== '/classes/messages') {
+    response.writeHead(404, headers);
+    response.write(JSON.stringify({results: dataArr}));
+    response.end();
+
+  } else if (request.method === 'POST') {
+    response.writeHead(201, headers);
+    var body = '';
+    request.on('data', function (data) {
+      body += data;
+    });
+    request.on('end', function () {
+      if (!body.includes('&')) {
+        var POST = JSON.parse(body);
+      } else {
+        var POST = qs.parse(body);
+      }
+      console.log(POST);
+      POST.createdAt = new Date();
+      dataArr.push(POST);
+      console.log(dataArr);
+      var endPoint = {results: dataArr};
+      response.write(JSON.stringify(endPoint));
+      response.end();
+    });
+
+  } else if (request.method === 'GET') {
+    response.writeHead(200, headers);
+    response.write(JSON.stringify({results: dataArr}));
+    response.end();
+
+  } else if (request.method === 'PUT') {
+    response.writeHead(200, headers);
+    response.write(JSON.stringify({results: dataArr}));
+    response.end();
+
+  } else if (request.method === 'DELETE') {
+    response.writeHead(200, headers);
+    response.write(JSON.stringify({results: dataArr}));
+    response.end();
+
+  } else if (request.method === ' OPTIONS') {
+    response.writeHead(200, headers);
+    response.write(JSON.stringify({results: dataArr}));
+    response.end();
+  } else {
+  
+    response.writeHead(200, headers);
+    response.write(JSON.stringify({results: dataArr}));
+    response.end();
+  }
+  
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
   // response.end() will be the body of the response - i.e. what shows
@@ -52,7 +123,8 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -70,4 +142,39 @@ var defaultCorsHeaders = {
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10 // Seconds.
 };
+
+exports.requestHandler = requestHandler;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // //fs.open('./data.js', 'r+', function(err, data) { err ? console.log('err') : console.log(data.arr); } );
+  
+  // fs.readFile('./data.js', 'utf8', function (err, data) {
+  //   if (err) {
+  //     return console.log(err);
+  //   }
+  //   var result = data.replace("hello world", 'goodbye');
+
+  //   fs.writeFile('./data.js', result, 'utf8', function (err) {
+  //      if (err) { return console.log(err); }
+  //   });
+  // });
 
